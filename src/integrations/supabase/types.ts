@@ -14,13 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          created_at: string
+          duration: number
+          full_name: string
+          id: string
+          is_paid: boolean | null
+          order_number: string
+          plan: string
+          total_amount: number
+          updated_at: string
+          wordpress: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          duration: number
+          full_name: string
+          id?: string
+          is_paid?: boolean | null
+          order_number: string
+          plan: string
+          total_amount: number
+          updated_at?: string
+          wordpress?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          duration?: number
+          full_name?: string
+          id?: string
+          is_paid?: boolean | null
+          order_number?: string
+          plan?: string
+          total_amount?: number
+          updated_at?: string
+          wordpress?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

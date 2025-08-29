@@ -20,7 +20,7 @@ const OrderConfirmation = () => {
     return null;
   }
 
-  const { orderNumber, totalAmount, plan, wordpress, fullName, duration } = orderData;
+  const { orderNumber, totalAmount, plan, wordpress, fullName, email, duration } = orderData;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background">

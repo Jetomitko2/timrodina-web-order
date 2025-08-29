@@ -7,9 +7,11 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">TR</span>
-          </div>
+          <img 
+            src="/lovable-uploads/c763e45f-2290-410f-b714-13ceaefded62.png" 
+            alt="TimRodina.online Logo" 
+            className="w-8 h-8 rounded-lg"
+          />
           <span className="font-bold text-xl text-foreground">TimRodina.online</span>
         </Link>
         
@@ -28,11 +30,15 @@ const Navbar = () => {
             <ExternalLink size={14} />
           </a>
           
-          <Link to="/dashboard">
+          <a 
+            href="https://timrodina.online/dashboard" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
             <Button variant="outline" size="sm" className="rounded-full">
-              Admin
+              Dashboard
             </Button>
-          </Link>
+          </a>
         </div>
       </div>
     </nav>

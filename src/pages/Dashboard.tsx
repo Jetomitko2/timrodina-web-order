@@ -15,6 +15,7 @@ interface Order {
   plan: string;
   wordpress: boolean;
   full_name: string;
+  email: string;
   duration: number;
   total_amount: number;
   is_paid: boolean;
@@ -250,6 +251,10 @@ const Dashboard = () => {
                   <div>
                     <label className="font-medium text-muted-foreground">Customer</label>
                     <p className="font-medium">{selectedOrder.full_name}</p>
+                  </div>
+                  <div>
+                    <label className="font-medium text-muted-foreground">Email</label>
+                    <p className="font-medium">{selectedOrder.email}</p>
                   </div>
                   <div>
                     <label className="font-medium text-muted-foreground">Plan</label>

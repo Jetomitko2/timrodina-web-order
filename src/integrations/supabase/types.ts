@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           duration: number
+          email: string
           full_name: string
           id: string
           is_paid: boolean | null
@@ -30,6 +31,7 @@ export type Database = {
         Insert: {
           created_at?: string
           duration: number
+          email?: string
           full_name: string
           id?: string
           is_paid?: boolean | null
@@ -42,6 +44,7 @@ export type Database = {
         Update: {
           created_at?: string
           duration?: number
+          email?: string
           full_name?: string
           id?: string
           is_paid?: boolean | null

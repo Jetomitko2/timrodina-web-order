@@ -21,8 +21,12 @@ const Home = () => {
       <section className="pt-24 pb-16 px-4">
         <div className="container mx-auto text-center">
           <div className="mb-8">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg shadow-primary/25">
-              <span className="text-primary-foreground font-bold text-2xl">TR</span>
+            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/25">
+              <img 
+                src="/lovable-uploads/c763e45f-2290-410f-b714-13ceaefded62.png" 
+                alt="TimRodina.online Logo" 
+                className="w-full h-full rounded-2xl"
+              />
             </div>
             <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
               TimRodina.online
@@ -245,7 +249,7 @@ const Home = () => {
         <div className="container mx-auto">
           <div className="flex justify-between items-center">
             <p className="text-muted-foreground text-sm">
-              © 2024 TimRodina.online. All rights reserved.
+              © 2025 TimRodina.online. All rights reserved.
             </p>
             
             <button 

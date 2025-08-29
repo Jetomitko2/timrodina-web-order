@@ -19,6 +19,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
   const [plan, setPlan] = useState<string>("webhosting");
   const [wordpress, setWordpress] = useState<boolean>(false);
   const [fullName, setFullName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [duration, setDuration] = useState<string>("");
   const [acceptTerms, setAcceptTerms] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -35,7 +36,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!fullName || !duration || !acceptTerms) {
+    if (!fullName || !email || !duration || !acceptTerms) {
       toast({
         title: "Error",
         description: "Please fill in all required fields and accept the terms.",
@@ -56,6 +57,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
           plan,
           wordpress,
           full_name: fullName,
+          email,
           duration: parseInt(duration),
           total_amount: totalAmount,
         })
@@ -71,6 +73,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
           plan,
           wordpress,
           fullName,
+          email,
           duration: parseInt(duration)
         } 
       });
@@ -158,6 +161,19 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
                     required
                   />
                 </div>

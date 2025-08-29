@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +14,8 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  useScrollAnimation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +45,7 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-card/50 backdrop-blur-sm border-border/50">
+      <Card className="w-full max-w-md bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-glow">
         <CardHeader className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-lg">TR</span>
@@ -78,7 +81,7 @@ const AdminLogin = () => {
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-primary to-accent"
+              className="w-full bg-gradient-to-r from-primary to-accent hover-scale"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign In"}

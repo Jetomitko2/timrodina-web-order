@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ExternalLink, Home } from "lucide-react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const OrderConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const orderData = location.state;
+  
+  useScrollAnimation();
 
   useEffect(() => {
     if (!orderData) {
@@ -26,7 +29,7 @@ const OrderConfirmation = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-glow">
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-8 h-8 text-white" />
@@ -39,7 +42,7 @@ const OrderConfirmation = () => {
             
             <CardContent className="space-y-6">
               {/* Order Number */}
-              <div className="text-center">
+              <div className="text-center animate-on-scroll">
                 <h2 className="text-4xl font-bold text-primary mb-2">
                   {orderNumber}
                 </h2>
@@ -47,7 +50,7 @@ const OrderConfirmation = () => {
               </div>
 
               {/* Order Details */}
-              <div className="bg-secondary/50 rounded-lg p-4">
+              <div className="bg-secondary/50 rounded-lg p-4 animate-on-scroll hover-glow">
                 <h3 className="font-semibold mb-3">Order Details</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -88,7 +91,7 @@ const OrderConfirmation = () => {
               </div>
 
               {/* Payment Instructions */}
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 animate-on-scroll hover-glow">
                 <h3 className="font-semibold text-primary mb-3">Payment Instructions</h3>
                 <p className="text-sm text-foreground mb-4">
                   To complete your order, please make a payment of <strong>€{totalAmount}</strong> using the link below. 
@@ -101,7 +104,7 @@ const OrderConfirmation = () => {
                   rel="noopener noreferrer"
                   className="inline-block"
                 >
-                  <Button className="bg-gradient-to-r from-primary to-accent flex items-center gap-2">
+                  <Button className="bg-gradient-to-r from-primary to-accent flex items-center gap-2 hover-scale">
                     Pay Now (€{totalAmount})
                     <ExternalLink size={16} />
                   </Button>
@@ -109,7 +112,7 @@ const OrderConfirmation = () => {
               </div>
 
               {/* Important Notes */}
-              <div className="bg-muted/50 rounded-lg p-4">
+              <div className="bg-muted/50 rounded-lg p-4 animate-on-scroll">
                 <h3 className="font-semibold mb-2">Important Notes</h3>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Please include the order number <strong>{orderNumber}</strong> in your payment notes</li>
@@ -120,11 +123,11 @@ const OrderConfirmation = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 animate-on-scroll">
                 <Button 
                   onClick={() => navigate("/")}
                   variant="outline" 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 hover-scale"
                 >
                   <Home size={16} />
                   Back to Home
@@ -136,7 +139,7 @@ const OrderConfirmation = () => {
                   rel="noopener noreferrer"
                   className="flex-1"
                 >
-                  <Button variant="outline" className="w-full flex items-center gap-2">
+                  <Button variant="outline" className="w-full flex items-center gap-2 hover-scale">
                     Join Discord Community
                     <ExternalLink size={16} />
                   </Button>

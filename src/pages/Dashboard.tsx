@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { LogOut, ExternalLink, Eye, CheckCircle, Clock, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 interface Order {
   id: string;
@@ -34,6 +35,8 @@ const Dashboard = () => {
     checkAuth();
     fetchOrders();
   }, []);
+  
+  useScrollAnimation();
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -142,7 +145,7 @@ const Dashboard = () => {
 
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
@@ -152,7 +155,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Paid Orders</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -162,7 +165,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
               <Clock className="h-4 w-4 text-orange-500" />
@@ -174,7 +177,7 @@ const Dashboard = () => {
         </div>
 
         {/* Orders Table */}
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+        <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-glow">
           <CardHeader>
             <CardTitle>Orders</CardTitle>
             <CardDescription>Manage all customer orders</CardDescription>

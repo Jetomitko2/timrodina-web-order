@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 interface OrderFormProps {
   onBack: () => void;
@@ -25,6 +26,8 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  useScrollAnimation();
 
   const calculateTotal = () => {
     const basePrice = plan === "pro" ? 3 : 2;
@@ -107,7 +110,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
             <p className="text-muted-foreground">Configure your hosting plan</p>
           </div>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-glow">
             <CardHeader>
               <CardTitle>Order Configuration</CardTitle>
               <CardDescription>Select your preferred hosting plan and options</CardDescription>
@@ -118,7 +121,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Select Plan</Label>
                   <RadioGroup value={plan} onValueChange={setPlan}>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border/50 hover:bg-secondary/50 transition-colors">
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border/50 hover:bg-secondary/50 transition-colors hover-glow">
                       <RadioGroupItem value="webhosting" id="webhosting" />
                       <Label htmlFor="webhosting" className="flex-1 cursor-pointer">
                         <div className="flex justify-between items-center">
@@ -127,7 +130,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
                         </div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border/50 hover:bg-secondary/50 transition-colors">
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border/50 hover:bg-secondary/50 transition-colors hover-glow">
                       <RadioGroupItem value="pro" id="pro" />
                       <Label htmlFor="pro" className="flex-1 cursor-pointer">
                         <div className="flex justify-between items-center">
@@ -140,7 +143,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
                 </div>
 
                 {/* WordPress Add-on */}
-                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border/50">
+                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border/50 hover-glow">
                   <Checkbox 
                     id="wordpress" 
                     checked={wordpress}
@@ -218,7 +221,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
 
                 {/* Order Summary */}
                 {duration && (
-                  <div className="p-4 bg-secondary/50 rounded-lg">
+                  <div className="p-4 bg-secondary/50 rounded-lg animate-on-scroll hover-glow">
                     <h3 className="font-semibold mb-2">Order Summary</h3>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
@@ -247,7 +250,7 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-primary to-accent"
+                  className="w-full bg-gradient-to-r from-primary to-accent hover-scale"
                   disabled={loading}
                 >
                   {loading ? "Processing..." : "Submit Order"}

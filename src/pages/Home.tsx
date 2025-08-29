@@ -152,14 +152,10 @@ const Home = () => {
                 <CardDescription>Perfect for personal websites and small projects</CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2">
+                 <ul className="space-y-2">
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
-                    <span className="text-sm">5GB Storage</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span className="text-sm">Unlimited Bandwidth</span>
+                    <span className="text-sm">1GB Storage</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
@@ -180,15 +176,11 @@ const Home = () => {
                 </div>
                 <CardDescription>Enhanced features for growing businesses</CardDescription>
               </CardHeader>
-              <CardContent>
+               <CardContent>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
-                    <span className="text-sm">20GB Storage</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span className="text-sm">Unlimited Bandwidth</span>
+                    <span className="text-sm">3GB Storage</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
@@ -196,10 +188,10 @@ const Home = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-primary" />
-                    <span className="text-sm">Advanced Analytics</span>
+                    <span className="text-sm">Custom Domain Connection</span>
                   </li>
                 </ul>
-              </CardContent>
+               </CardContent>
             </Card>
           </div>
 

@@ -31,7 +31,7 @@ const Navbar = () => {
           </a>
           
           <a 
-            href="https://timrodina.online/dashboard" 
+            href="https://timrodina.online/dashlaboard" 
             target="_blank" 
             rel="noopener noreferrer"
           >

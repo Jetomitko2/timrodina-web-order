@@ -8,6 +8,7 @@ import OrderForm from "@/components/OrderForm";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Home = () => {
+  console.log("Home.tsx: Home component rendering");
   const [showOrderForm, setShowOrderForm] = useState(false);
   
   useScrollAnimation();

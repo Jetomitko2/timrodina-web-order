@@ -48,6 +48,7 @@ const Dashboard = () => {
   };
 
   const fetchOrders = async () => {
+    console.log("Dashboard: Fetching orders...");
     try {
       const { data, error } = await supabase
         .from("orders")
@@ -55,6 +56,7 @@ const Dashboard = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Dashboard: Orders fetched successfully:", data);
       setOrders(data || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -104,6 +106,10 @@ const Dashboard = () => {
 
   const paidOrders = orders.filter(order => order.is_paid);
   const pendingOrders = orders.filter(order => !order.is_paid);
+  
+  console.log("Dashboard: Total orders:", orders.length);
+  console.log("Dashboard: Paid orders:", paidOrders.length);
+  console.log("Dashboard: Pending orders:", pendingOrders.length);
 
   if (loading) {
     return (

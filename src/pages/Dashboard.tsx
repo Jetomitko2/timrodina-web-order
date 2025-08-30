@@ -112,6 +112,8 @@ const Dashboard = () => {
   console.log("Dashboard: Paid orders:", paidOrders.length);
   console.log("Dashboard: Pending orders:", pendingOrders.length);
 
+  console.log("Dashboard: Orders state:", orders);
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background flex items-center justify-center">

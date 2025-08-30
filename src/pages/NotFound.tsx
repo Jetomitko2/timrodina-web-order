@@ -5,6 +5,7 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
+    document.title = "TMRD-404";
     console.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname

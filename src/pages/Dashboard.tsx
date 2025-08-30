@@ -32,6 +32,7 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    document.title = "TMRD-Admin";
     checkAuth();
     fetchOrders();
   }, []);

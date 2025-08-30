@@ -9,6 +9,11 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Home = () => {
   console.log("Home.tsx: Home component rendering");
+  
+  // Set page title
+  useEffect(() => {
+    document.title = "TMRD-Home";
+  }, []);
   const [showOrderForm, setShowOrderForm] = useState(false);
   
   useScrollAnimation();
@@ -36,7 +41,7 @@ const Home = () => {
               TimRodina.online
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Professional web hosting solutions with reliable performance and 24/7 support
+              Professional web hosting solutions with reliable performance and 48/7 support
             </p>
             <Button 
               onClick={() => setShowOrderForm(true)}
@@ -113,7 +118,7 @@ const Home = () => {
             <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg transition-shadow animate-on-scroll hover-lift hover-glow">
               <CardHeader>
                 <Users className="w-12 h-12 text-primary mb-4" />
-                <CardTitle>24/7 Support</CardTitle>
+                <CardTitle>48/7 Support</CardTitle>
                 <CardDescription>Expert support whenever you need it</CardDescription>
               </CardHeader>
               <CardContent>

@@ -14,6 +14,7 @@ const OrderConfirmation = () => {
   useScrollAnimation();
 
   useEffect(() => {
+    document.title = "TMRD-Order";
     if (!orderData) {
       navigate("/");
     }
@@ -116,7 +117,7 @@ const OrderConfirmation = () => {
                 <h3 className="font-semibold mb-2">Important Notes</h3>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Please include the order number <strong>{orderNumber}</strong> in your payment notes</li>
-                  <li>• Your hosting service will be activated within 24 hours after payment confirmation</li>
+                  <li>• Your hosting service will be activated within 48 hours after payment confirmation</li>
                   <li>• You will receive login credentials via email once your service is ready</li>
                   <li>• For any questions, contact our support team on Discord</li>
                 </ul>

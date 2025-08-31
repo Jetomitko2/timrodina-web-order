@@ -35,22 +35,23 @@ const Dashboard = () => {
     document.title = "TMRD-Admin";
     checkAuth();
   }, []);
-
-  useEffect(() => {
-    if (user) {
-      fetchOrders();
-    }
-  }, [user]);
   
   useScrollAnimation();
 
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/admin");
+        return;
+      }
+      setUser(user);
+      // Fetch orders after successful auth
+      await fetchOrders();
+    } catch (error) {
+      console.error("Auth check failed:", error);
       navigate("/admin");
-      return;
     }
-    setUser(user);
   };
 
   const fetchOrders = async () => {

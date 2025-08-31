@@ -21,7 +21,7 @@ const Navbar = ({ showLanguageSwitcher = false }: { showLanguageSwitcher?: boole
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm hover-glow">
               <img 
-                src="/lovable-uploads/c763e45f-2290-410f-b714-13ceaefded62.png" 
+                src="/lovable-uploads/0e50cca1-1550-4144-bad1-e0bc88b7918c.png" 
                 alt="TimRodina.online Logo" 
                 className="w-full h-full rounded-lg"
               />

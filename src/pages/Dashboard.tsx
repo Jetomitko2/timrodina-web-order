@@ -83,15 +83,17 @@ const Dashboard = () => {
       if (error) throw error;
       console.log("Dashboard: Orders fetched successfully:", data);
       setOrders(data || []);
+      console.log("Dashboard: Setting loading to false");
       setLoading(false); // Set loading to false here after successful fetch
     } catch (error) {
       console.error("Error fetching orders:", error);
+      console.log("Dashboard: Setting loading to false (error)");
+      setLoading(false); // Also set loading to false on error
       toast({
         title: "Error",
         description: "Failed to fetch orders",
         variant: "destructive",
       });
-      setLoading(false); // Also set loading to false on error
     }
   };
 
@@ -132,10 +134,10 @@ const Dashboard = () => {
   const paidOrders = orders.filter(order => order.is_paid);
   const pendingOrders = orders.filter(order => !order.is_paid);
   
+  console.log("Dashboard: Loading state:", loading);
   console.log("Dashboard: Total orders:", orders.length);
   console.log("Dashboard: Paid orders:", paidOrders.length);
   console.log("Dashboard: Pending orders:", pendingOrders.length);
-
   console.log("Dashboard: Orders state:", orders);
   
   if (loading) {

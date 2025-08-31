@@ -33,24 +33,42 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.title = "TMRD-Admin";
-    checkAuth();
+    initializeDashboard();
   }, []);
   
   useScrollAnimation();
 
-  const checkAuth = async () => {
+  const initializeDashboard = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      console.log("Dashboard: Initializing...");
+      setLoading(true);
+      
+      // Check auth first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log("Dashboard: Auth check result:", { user, authError });
+      
+      if (authError) {
+        console.error("Dashboard: Auth error:", authError);
         navigate("/admin");
         return;
       }
+      
+      if (!user) {
+        console.log("Dashboard: No user found, redirecting to admin");
+        navigate("/admin");
+        return;
+      }
+      
+      console.log("Dashboard: User authenticated:", user.email);
       setUser(user);
-      // Fetch orders after successful auth
+      
+      // Fetch orders
       await fetchOrders();
     } catch (error) {
-      console.error("Auth check failed:", error);
+      console.error("Dashboard: Initialization error:", error);
       navigate("/admin");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,8 +90,6 @@ const Dashboard = () => {
         description: "Failed to fetch orders",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 

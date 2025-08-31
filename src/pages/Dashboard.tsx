@@ -41,7 +41,6 @@ const Dashboard = () => {
   const initializeDashboard = async () => {
     try {
       console.log("Dashboard: Initializing...");
-      setLoading(true);
       
       // Check auth first
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -49,12 +48,14 @@ const Dashboard = () => {
       
       if (authError) {
         console.error("Dashboard: Auth error:", authError);
+        setLoading(false);
         navigate("/admin");
         return;
       }
       
       if (!user) {
         console.log("Dashboard: No user found, redirecting to admin");
+        setLoading(false);
         navigate("/admin");
         return;
       }
@@ -62,13 +63,12 @@ const Dashboard = () => {
       console.log("Dashboard: User authenticated:", user.email);
       setUser(user);
       
-      // Fetch orders
+      // Fetch orders (loading will be set to false in fetchOrders)
       await fetchOrders();
     } catch (error) {
       console.error("Dashboard: Initialization error:", error);
-      navigate("/admin");
-    } finally {
       setLoading(false);
+      navigate("/admin");
     }
   };
 
@@ -83,6 +83,7 @@ const Dashboard = () => {
       if (error) throw error;
       console.log("Dashboard: Orders fetched successfully:", data);
       setOrders(data || []);
+      setLoading(false); // Set loading to false here after successful fetch
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast({
@@ -90,6 +91,7 @@ const Dashboard = () => {
         description: "Failed to fetch orders",
         variant: "destructive",
       });
+      setLoading(false); // Also set loading to false on error
     }
   };
 

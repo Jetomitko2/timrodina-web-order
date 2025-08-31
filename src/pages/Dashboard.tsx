@@ -34,8 +34,13 @@ const Dashboard = () => {
   useEffect(() => {
     document.title = "TMRD-Admin";
     checkAuth();
-    fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+    }
+  }, [user]);
   
   useScrollAnimation();
 

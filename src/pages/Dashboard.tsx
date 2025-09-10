@@ -40,7 +40,29 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.title = "TMRD-Admin";
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Dashboard: Auth state changed:", event, session?.user?.email);
+      
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate("/admin", { replace: true });
+        return;
+      }
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setUser(session.user);
+        if (orders.length === 0) {
+          fetchOrders();
+        }
+      }
+    });
+
     initializeDashboard();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
   
   useScrollAnimation();
@@ -49,33 +71,51 @@ const Dashboard = () => {
     try {
       console.log("Dashboard: Initializing...");
       
-      // Check auth first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Wait a bit for potential session restoration
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Check auth first - try multiple times if needed
+      let authAttempts = 0;
+      let user = null;
+      let authError = null;
+      
+      while (authAttempts < 3 && !user) {
+        const { data, error } = await supabase.auth.getUser();
+        user = data?.user;
+        authError = error;
+        
+        if (!user && authAttempts < 2) {
+          console.log(`Dashboard: Auth attempt ${authAttempts + 1} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        authAttempts++;
+      }
+      
       console.log("Dashboard: Auth check result:", { user, authError });
       
       if (authError) {
         console.error("Dashboard: Auth error:", authError);
         setLoading(false);
-        navigate("/admin");
+        navigate("/admin", { replace: true });
         return;
       }
       
       if (!user) {
         console.log("Dashboard: No user found, redirecting to admin");
         setLoading(false);
-        navigate("/admin");
+        navigate("/admin", { replace: true });
         return;
       }
       
       console.log("Dashboard: User authenticated:", user.email);
       setUser(user);
       
-      // Fetch orders (loading will be set to false in fetchOrders)
+      // Fetch orders
       await fetchOrders();
     } catch (error) {
       console.error("Dashboard: Initialization error:", error);
       setLoading(false);
-      navigate("/admin");
+      navigate("/admin", { replace: true });
     }
   };
 

@@ -34,7 +34,12 @@ const AdminLogin = () => {
       if (error) throw error;
 
       if (data.user) {
-        navigate("/dashboard");
+        toast({
+          title: "Success", 
+          description: "Successfully logged in",
+        });
+        // Use replace to prevent back button issues
+        navigate("/dashboard", { replace: true });
       }
     } catch (error: any) {
       toast({

@@ -5,7 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LogOut, ExternalLink, Eye, CheckCircle, Clock, Package } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { LogOut, ExternalLink, Eye, CheckCircle, Clock, Package, Mail, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
@@ -28,6 +31,10 @@ const Dashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<'online' | 'offline' | 'maintenance' | ''>('');
+  const [offlineReason, setOfflineReason] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -126,6 +133,50 @@ const Dashboard = () => {
     }
   };
 
+  const sendStatusEmail = async () => {
+    if (!selectedStatus) return;
+    
+    if (selectedStatus === 'offline' && !offlineReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Prosím zadajte dôvod pre offline status",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSendingEmail(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke('send-status-email', {
+        body: { 
+          status: selectedStatus,
+          reason: selectedStatus === 'offline' ? offlineReason : undefined
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Status email (${selectedStatus}) bol úspešne odoslaný všetkým zákazníkom`,
+      });
+
+      setStatusDialogOpen(false);
+      setSelectedStatus('');
+      setOfflineReason('');
+    } catch (error) {
+      console.error("Error sending status email:", error);
+      toast({
+        title: "Error",
+        description: "Nepodarilo sa odoslať status email",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/admin");
@@ -161,6 +212,13 @@ const Dashboard = () => {
             <p className="text-muted-foreground">Manage TimRodina.online orders</p>
           </div>
           <div className="flex items-center gap-4">
+            <Button 
+              onClick={() => setStatusDialogOpen(true)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <Send size={16} />
+              Status Email
+            </Button>
             <a 
               href="https://timrodina.online/webadminpanel" 
               target="_blank" 
@@ -331,6 +389,92 @@ const Dashboard = () => {
                 )}
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+        {/* Status Email Dialog */}
+        <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Odoslať Status Email</DialogTitle>
+              <DialogDescription>
+                Vyberte status a odošlite email všetkým zákazníkom so zaplatenými objednávkami
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={selectedStatus} onValueChange={(value: 'online' | 'offline' | 'maintenance') => setSelectedStatus(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Vyberte status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="online">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Online - Všetko funguje
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="offline">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                        Offline - Nefunguje
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="maintenance">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                        Prerába sa - Údržba
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedStatus === 'offline' && (
+                <div>
+                  <Label htmlFor="reason">Dôvod offline (povinné)</Label>
+                  <Textarea
+                    id="reason"
+                    placeholder="Napíšte dôvod prečo je webhosting offline..."
+                    value={offlineReason}
+                    onChange={(e) => setOfflineReason(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={() => {
+                    setStatusDialogOpen(false);
+                    setSelectedStatus('');
+                    setOfflineReason('');
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Zrušiť
+                </Button>
+                <Button
+                  onClick={sendStatusEmail}
+                  disabled={!selectedStatus || sendingEmail}
+                  className="flex-1"
+                >
+                  {sendingEmail ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Odosiela sa...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Odoslať Email
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

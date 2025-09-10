@@ -69,6 +69,26 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
 
       if (error) throw error;
 
+      // Send notification email to admin
+      try {
+        console.log("Sending order notification email...");
+        await supabase.functions.invoke('notify-new-order', {
+          body: {
+            orderNumber: data.order_number,
+            fullName,
+            email,
+            plan,
+            wordpress,
+            duration: parseInt(duration),
+            totalAmount
+          }
+        });
+        console.log("Order notification email sent successfully");
+      } catch (emailError) {
+        console.error("Failed to send notification email:", emailError);
+        // Don't block the order process if email fails
+      }
+
       navigate("/order-confirmation", { 
         state: { 
           orderNumber: data.order_number,

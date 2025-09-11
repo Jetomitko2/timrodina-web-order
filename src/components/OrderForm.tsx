@@ -52,6 +52,14 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
 
     try {
       const totalAmount = calculateTotal();
+      console.log("Creating order with data:", {
+        plan,
+        wordpress, 
+        fullName,
+        email,
+        duration: parseInt(duration),
+        totalAmount
+      });
       
       const { data, error } = await supabase
         .from("orders")
@@ -65,9 +73,17 @@ const OrderForm = ({ onBack }: OrderFormProps) => {
           total_amount: totalAmount,
         })
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+
+      if (!data) {
+        console.error("No data returned from insert");
+        throw new Error("Order creation failed - no data returned");
+      }
 
       // Send notification email to admin
       try {

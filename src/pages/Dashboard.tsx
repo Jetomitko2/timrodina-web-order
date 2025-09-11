@@ -8,10 +8,27 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { LogOut, ExternalLink, Eye, CheckCircle, Clock, Package, Mail, Send } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { 
+  LogOut, 
+  ExternalLink, 
+  Eye, 
+  CheckCircle, 
+  Clock, 
+  Package, 
+  Mail, 
+  Send, 
+  TrendingUp, 
+  Users, 
+  Euro,
+  Search,
+  Filter,
+  Loader2,
+  Calendar,
+  Shield
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 interface Order {
   id: string;
@@ -28,6 +45,7 @@ interface Order {
 
 const Dashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -35,92 +53,39 @@ const Dashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState<'online' | 'offline' | 'maintenance' | ''>('');
   const [offlineReason, setOfflineReason] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending'>('all');
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    document.title = "TMRD-Admin";
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Dashboard: Auth state changed:", event, session?.user?.email);
-      
-      if (event === 'SIGNED_OUT' || !session) {
-        navigate("/admin", { replace: true });
-        return;
-      }
-      
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        setUser(session.user);
-        if (orders.length === 0) {
-          fetchOrders();
-        }
-      }
-    });
-
+    document.title = "Dashboard - TimRodina Admin";
     initializeDashboard();
-    
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
-  
-  useScrollAnimation();
+
+  useEffect(() => {
+    filterOrders();
+  }, [orders, searchTerm, statusFilter]);
 
   const initializeDashboard = async () => {
     try {
-      console.log("Dashboard: Initializing...");
+      const { data: { user }, error } = await supabase.auth.getUser();
       
-      // Wait a bit for potential session restoration
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Check auth first - try multiple times if needed
-      let authAttempts = 0;
-      let user = null;
-      let authError = null;
-      
-      while (authAttempts < 3 && !user) {
-        const { data, error } = await supabase.auth.getUser();
-        user = data?.user;
-        authError = error;
-        
-        if (!user && authAttempts < 2) {
-          console.log(`Dashboard: Auth attempt ${authAttempts + 1} failed, retrying...`);
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-        authAttempts++;
-      }
-      
-      console.log("Dashboard: Auth check result:", { user, authError });
-      
-      if (authError) {
-        console.error("Dashboard: Auth error:", authError);
-        setLoading(false);
+      if (error || !user) {
+        console.log("User not authenticated, redirecting to login");
         navigate("/admin", { replace: true });
         return;
       }
-      
-      if (!user) {
-        console.log("Dashboard: No user found, redirecting to admin");
-        setLoading(false);
-        navigate("/admin", { replace: true });
-        return;
-      }
-      
-      console.log("Dashboard: User authenticated:", user.email);
+
       setUser(user);
-      
-      // Fetch orders
       await fetchOrders();
     } catch (error) {
-      console.error("Dashboard: Initialization error:", error);
-      setLoading(false);
+      console.error("Dashboard initialization error:", error);
       navigate("/admin", { replace: true });
     }
   };
 
   const fetchOrders = async () => {
-    console.log("Dashboard: Fetching orders...");
     try {
       const { data, error } = await supabase
         .from("orders")
@@ -128,20 +93,38 @@ const Dashboard = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("Dashboard: Orders fetched successfully:", data);
+      
       setOrders(data || []);
-      console.log("Dashboard: Setting loading to false");
-      setLoading(false); // Set loading to false here after successful fetch
     } catch (error) {
       console.error("Error fetching orders:", error);
-      console.log("Dashboard: Setting loading to false (error)");
-      setLoading(false); // Also set loading to false on error
       toast({
-        title: "Error",
-        description: "Failed to fetch orders",
+        title: "Chyba",
+        description: "Nepodarilo sa načítať objednávky",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const filterOrders = () => {
+    let filtered = orders;
+
+    if (searchTerm) {
+      filtered = filtered.filter(order => 
+        order.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.order_number.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => 
+        statusFilter === 'paid' ? order.is_paid : !order.is_paid
+      );
+    }
+
+    setFilteredOrders(filtered);
   };
 
   const markAsPaid = async (orderId: string) => {
@@ -158,16 +141,16 @@ const Dashboard = () => {
       ));
 
       toast({
-        title: "Success",
-        description: "Order marked as paid",
+        title: "Úspech",
+        description: "Objednávka označená ako zaplatená",
       });
 
       setSelectedOrder(null);
     } catch (error) {
       console.error("Error updating order:", error);
       toast({
-        title: "Error",
-        description: "Failed to update order",
+        title: "Chyba",
+        description: "Nepodarilo sa aktualizovať objednávku",
         variant: "destructive",
       });
     }
@@ -178,7 +161,7 @@ const Dashboard = () => {
     
     if (selectedStatus === 'offline' && !offlineReason.trim()) {
       toast({
-        title: "Error",
+        title: "Chyba",
         description: "Prosím zadajte dôvod pre offline status",
         variant: "destructive",
       });
@@ -198,7 +181,7 @@ const Dashboard = () => {
       if (error) throw error;
 
       toast({
-        title: "Success",
+        title: "Úspech",
         description: `Status email (${selectedStatus}) bol úspešne odoslaný všetkým zákazníkom`,
       });
 
@@ -208,7 +191,7 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error sending status email:", error);
       toast({
-        title: "Error",
+        title: "Chyba",
         description: "Nepodarilo sa odoslať status email",
         variant: "destructive",
       });
@@ -219,233 +202,335 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/admin");
+    navigate("/admin", { replace: true });
   };
 
   const paidOrders = orders.filter(order => order.is_paid);
   const pendingOrders = orders.filter(order => !order.is_paid);
-  
-  console.log("Dashboard: Loading state:", loading);
-  console.log("Dashboard: Total orders:", orders.length);
-  console.log("Dashboard: Paid orders:", paidOrders.length);
-  console.log("Dashboard: Pending orders:", pendingOrders.length);
-  console.log("Dashboard: Orders state:", orders);
+  const totalRevenue = paidOrders.reduce((sum, order) => sum + order.total_amount, 0);
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-400 text-lg">Načítavam dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage TimRodina.online orders</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button 
-              onClick={() => setStatusDialogOpen(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Send size={16} />
-              Status Email
-            </Button>
-            <a 
-              href="https://timrodina.online/webadminpanel" 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <Button variant="outline" className="flex items-center gap-2">
-                Passwords
-                <ExternalLink size={16} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Header */}
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 sticky top-0 z-10">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
+                <p className="text-slate-600 dark:text-slate-400">TimRodina.online správa</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => setStatusDialogOpen(true)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Status Email
               </Button>
-            </a>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
-              <LogOut size={16} />
-              Logout
-            </Button>
+              <a 
+                href="https://timrodina.online/webadminpanel" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline" className="border-slate-300 dark:border-slate-600">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Passwords
+                </Button>
+              </a>
+              <Button 
+                variant="outline" 
+                onClick={handleLogout}
+                className="border-slate-300 dark:border-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-700 dark:hover:bg-red-900/20"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Odhlásiť
+              </Button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-lift">
+      <div className="container mx-auto px-6 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Celkové objednávky</CardTitle>
+              <Package className="h-5 w-5 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{orders.length}</div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">{orders.length}</div>
+              <p className="text-xs text-slate-500 mt-1">Všetky objednávky v systéme</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-lift">
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Paid Orders</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Zaplatené</CardTitle>
+              <CheckCircle className="h-5 w-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-500">{paidOrders.length}</div>
+              <div className="text-3xl font-bold text-green-600">{paidOrders.length}</div>
+              <p className="text-xs text-slate-500 mt-1">Úspešne zaplatené objednávky</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-lift">
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-              <Clock className="h-4 w-4 text-orange-500" />
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Čakajúce</CardTitle>
+              <Clock className="h-5 w-5 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">{pendingOrders.length}</div>
+              <div className="text-3xl font-bold text-orange-600">{pendingOrders.length}</div>
+              <p className="text-xs text-slate-500 mt-1">Čakajúce na platbu</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Celkové tržby</CardTitle>
+              <Euro className="h-5 w-5 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-600">€{totalRevenue.toFixed(2)}</div>
+              <p className="text-xs text-slate-500 mt-1">Z zaplatených objednávok</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Orders Table */}
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50 animate-on-scroll hover-glow">
+        {/* Filters and Search */}
+        <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg mb-6">
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
-            <CardDescription>Manage all customer orders</CardDescription>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div>
+                <CardTitle className="text-xl text-slate-900 dark:text-white">Správa objednávok</CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400">
+                  Prehľad a správa všetkých zákazníckych objednávok
+                </CardDescription>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Hľadať objednávky..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={(value: 'all' | 'paid' | 'pending') => setStatusFilter(value)}>
+                  <SelectTrigger className="w-full sm:w-40 border-slate-300 dark:border-slate-600">
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Všetky</SelectItem>
+                    <SelectItem value="paid">Zaplatené</SelectItem>
+                    <SelectItem value="pending">Čakajúce</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{order.full_name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="capitalize">{order.plan}</span>
-                        {order.wordpress && (
-                          <Badge variant="secondary" className="text-xs">+WP</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>€{order.total_amount}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={order.is_paid ? "default" : "secondary"}
-                        className={order.is_paid ? "bg-green-500" : "bg-orange-500"}
-                      >
-                        {order.is_paid ? "Paid" : "Pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedOrder(order)}
-                        className="flex items-center gap-1"
-                      >
-                        <Eye size={14} />
-                        View
-                      </Button>
-                    </TableCell>
+            <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50 dark:bg-slate-800/50">
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Číslo objednávky</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Zákazník</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Plán</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Suma</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Status</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Dátum</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Akcie</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-slate-500 dark:text-slate-400">
+                        {searchTerm || statusFilter !== 'all' 
+                          ? "Žiadne objednávky nezodpovedajú filtrom" 
+                          : "Žiadne objednávky"
+                        }
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredOrders.map((order) => (
+                      <TableRow key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <TableCell className="font-mono font-medium text-slate-900 dark:text-white">
+                          {order.order_number}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-slate-900 dark:text-white">{order.full_name}</div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">{order.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="capitalize font-medium text-slate-900 dark:text-white">{order.plan}</span>
+                            {order.wordpress && (
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                +WP
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-semibold text-slate-900 dark:text-white">
+                          €{order.total_amount}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            className={order.is_paid 
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                              : "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
+                            }
+                          >
+                            {order.is_paid ? "Zaplatené" : "Čakajúce"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(order.created_at).toLocaleDateString('sk-SK')}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedOrder(order)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Detail
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         {/* Order Details Dialog */}
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
             <DialogHeader>
-              <DialogTitle>Order Details</DialogTitle>
-              <DialogDescription>
-                Order #{selectedOrder?.order_number}
+              <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white">
+                Detail objednávky
+              </DialogTitle>
+              <DialogDescription className="text-slate-600 dark:text-slate-400">
+                Objednávka #{selectedOrder?.order_number}
               </DialogDescription>
             </DialogHeader>
             
             {selectedOrder && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <label className="font-medium text-muted-foreground">Customer</label>
-                    <p className="font-medium">{selectedOrder.full_name}</p>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Zákazník</label>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedOrder.full_name}</p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">Email</label>
-                    <p className="font-medium">{selectedOrder.email}</p>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Email</label>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedOrder.email}</p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">Plan</label>
-                    <p className="font-medium capitalize">{selectedOrder.plan}</p>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Plán</label>
+                    <p className="text-slate-900 dark:text-white font-medium capitalize">{selectedOrder.plan}</p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">WordPress</label>
-                    <p className="font-medium">{selectedOrder.wordpress ? "Yes" : "No"}</p>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">WordPress</label>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedOrder.wordpress ? "Áno" : "Nie"}</p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">Duration</label>
-                    <p className="font-medium">{selectedOrder.duration} month{selectedOrder.duration > 1 ? "s" : ""}</p>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Trvanie</label>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedOrder.duration} mesiac{selectedOrder.duration > 1 ? "ov" : ""}</p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">Total Amount</label>
-                    <p className="font-medium">€{selectedOrder.total_amount}</p>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Celková suma</label>
+                    <p className="text-slate-900 dark:text-white font-medium text-lg">€{selectedOrder.total_amount}</p>
                   </div>
-                  <div>
-                    <label className="font-medium text-muted-foreground">Status</label>
+                </div>
+
+                <Separator className="bg-slate-200 dark:bg-slate-700" />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Status platby</label>
                     <Badge 
-                      variant={selectedOrder.is_paid ? "default" : "secondary"}
-                      className={selectedOrder.is_paid ? "bg-green-500" : "bg-orange-500"}
+                      className={selectedOrder.is_paid 
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                        : "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
+                      }
                     >
-                      {selectedOrder.is_paid ? "Paid" : "Pending"}
+                      {selectedOrder.is_paid ? "Zaplatené" : "Čakajúce"}
                     </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Dátum vytvorenia</label>
+                    <p className="text-slate-900 dark:text-white font-medium">
+                      {new Date(selectedOrder.created_at).toLocaleDateString('sk-SK')}
+                    </p>
                   </div>
                 </div>
 
                 {!selectedOrder.is_paid && (
-                  <Button 
-                    onClick={() => markAsPaid(selectedOrder.id)}
-                    className="w-full bg-green-500 hover:bg-green-600"
-                  >
-                    Mark as Paid
-                  </Button>
+                  <>
+                    <Separator className="bg-slate-200 dark:bg-slate-700" />
+                    <Button 
+                      onClick={() => markAsPaid(selectedOrder.id)}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium shadow-lg"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Označiť ako zaplatené
+                    </Button>
+                  </>
                 )}
               </div>
             )}
           </DialogContent>
         </Dialog>
+
         {/* Status Email Dialog */}
         <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
             <DialogHeader>
-              <DialogTitle>Odoslať Status Email</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white">
+                Odoslať Status Email
+              </DialogTitle>
+              <DialogDescription className="text-slate-600 dark:text-slate-400">
                 Vyberte status a odošlite email všetkým zákazníkom so zaplatenými objednávkami
               </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="status">Status</Label>
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-slate-700 dark:text-slate-300">Status</Label>
                 <Select value={selectedStatus} onValueChange={(value: 'online' | 'offline' | 'maintenance') => setSelectedStatus(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-slate-300 dark:border-slate-600">
                     <SelectValue placeholder="Vyberte status..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -463,8 +548,8 @@ const Dashboard = () => {
                     </SelectItem>
                     <SelectItem value="maintenance">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                        Prerába sa - Údržba
+                        <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                        Údržba - Prevádzka obmedzená
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -472,44 +557,40 @@ const Dashboard = () => {
               </div>
 
               {selectedStatus === 'offline' && (
-                <div>
-                  <Label htmlFor="reason">Dôvod offline (povinné)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="reason" className="text-slate-700 dark:text-slate-300">Dôvod</Label>
                   <Textarea
                     id="reason"
-                    placeholder="Napíšte dôvod prečo je webhosting offline..."
                     value={offlineReason}
                     onChange={(e) => setOfflineReason(e.target.value)}
-                    className="min-h-[80px]"
+                    placeholder="Zadajte dôvod prečo je služba offline..."
+                    className="border-slate-300 dark:border-slate-600 min-h-[100px]"
                   />
                 </div>
               )}
 
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={() => {
-                    setStatusDialogOpen(false);
-                    setSelectedStatus('');
-                    setOfflineReason('');
-                  }}
-                  variant="outline"
-                  className="flex-1"
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setStatusDialogOpen(false)}
+                  className="flex-1 border-slate-300 dark:border-slate-600"
                 >
                   Zrušiť
                 </Button>
-                <Button
+                <Button 
                   onClick={sendStatusEmail}
                   disabled={!selectedStatus || sendingEmail}
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                 >
                   {sendingEmail ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Odosiela sa...
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Odosielam...
                     </>
                   ) : (
                     <>
-                      <Mail className="mr-2 h-4 w-4" />
-                      Odoslať Email
+                      <Mail className="w-4 h-4 mr-2" />
+                      Odoslať
                     </>
                   )}
                 </Button>
